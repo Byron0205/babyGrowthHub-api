@@ -5,11 +5,11 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 function formatsPostSendToken(token, formatMailNumber) {
-  let tokenMailingFormat = ``;
+    let tokenMailingFormat = ``;
 
-  // Formato envio token doble factor
-  if (formatMailNumber == 1) {
-    tokenMailingFormat = `
+    // Formato envio token doble factor
+    if (formatMailNumber == 1) {
+        tokenMailingFormat = `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -110,9 +110,9 @@ function formatsPostSendToken(token, formatMailNumber) {
     </html>
     
     `;
-    // Formato envio token cambio contrasena
-  } else if (formatMailNumber == 2) {
-    tokenMailingFormat = `
+        // Formato envio token cambio contrasena
+    } else if (formatMailNumber == 2) {
+        tokenMailingFormat = `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -213,72 +213,70 @@ function formatsPostSendToken(token, formatMailNumber) {
       </body>
     </html>
     `;
-  }
+    }
 
-  return tokenMailingFormat;
+    return tokenMailingFormat;
 }
 
 const tokensController = {
-  sendToken: async (req, res) => {
-    const email = req.params.email;
-    const formatMailNumber = req.params.formatmail;
+    sendToken: async (req, res) => {
+        const email = req.params.email;
+        const formatMailNumber = req.params.formatmail;
 
-    // Generar un secreto para el usuario y la comparacion fututa del token
-    const secret = speakeasy.generateSecret();
+        // Generar un secreto para el usuario y la comparacion fututa del token
+        const secret = speakeasy.generateSecret();
 
-    const token = speakeasy.totp({
-      secret: secret.base32,
-      encoding: "base32",
-    });
+        const token = speakeasy.totp({
+            secret: secret.base32,
+            encoding: "base32",
+        });
 
-    
-    console.log(`TOKEN GENERADO: ${token}`);
+        console.log(`TOKEN GENERADO: ${token}`);
 
-    const emailTransporter = 'babygrowthhub@gmail.com';
-    const emailPassword = 'hycpsbupuealsymr';
+        const emailTransporter = process.env.EMAIL_TRANSPORTER;
+        const emailPassword = process.env.PASS_EMAIL_TRANSPORTER;
 
-    // Configurar el transporte del correo electrónico
-    const transporter = nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: emailTransporter,
-        pass: emailPassword,
-      },
-    });
+        // Configurar el transporte del correo electrónico
+        const transporter = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: emailTransporter,
+                pass: emailPassword,
+            },
+        });
 
-    //Obtener el formato que tendra el correo para envio del token
-    const mailNumberInt = parseInt(formatMailNumber);
-    const tokenMailingFormat = formatsPostSendToken(token, mailNumberInt);
+        //Obtener el formato que tendra el correo para envio del token
+        const mailNumberInt = parseInt(formatMailNumber);
+        const tokenMailingFormat = formatsPostSendToken(token, mailNumberInt);
 
-    // Esperar hasta que se envíe el correo electrónico
-    await transporter.sendMail({
-      from: emailTransporter,
-      to: email,
-      subject: "Token doble autenticación Baby Growth Hub",
-      html: tokenMailingFormat,
-    });
+        // Esperar hasta que se envíe el correo electrónico
+        await transporter.sendMail({
+            from: emailTransporter,
+            to: email,
+            subject: "Token doble autenticación Baby Growth Hub",
+            html: tokenMailingFormat,
+        });
 
-    // El secreto se usará adelante para aplicar la validación
-    res.json({ secreto: secret });
-  },
-  validateToken: (req, res) => {
-    // Valida esto por medio del "secret" generado al inicio
-    const userEnteredToken = req.body.token;
-    const objSecreto = req.body.secreto;
+        // El secreto se usará adelante para aplicar la validación
+        res.json({ secreto: secret });
+    },
+    validateToken: (req, res) => {
+        // Valida esto por medio del "secret" generado al inicio
+        const userEnteredToken = req.body.token;
+        const objSecreto = req.body.secreto;
 
-    
-    const secreto = objSecreto.secreto;
+        const secreto = objSecreto.secreto;
 
-    const isValidToken = speakeasy.totp.verify({
-      secret: secreto.base32,
-      encoding: "base32",
-      token: userEnteredToken,
-      window: 10, // 9 intervalos * 30 segundos por intervalo = 270 segundos
-    });
+        const isValidToken = speakeasy.totp.verify({
+            secret: secreto.base32,
+            encoding: "base32",
+            token: userEnteredToken,
+            window: 10, // 9 intervalos * 30 segundos por intervalo = 270 segundos
+        });
 
-    // NOTA: Parametro window: 1 para aceptar token debido a la diferencia horaria
-    res.json({ isValidToken: isValidToken });
-  },
+        // NOTA: Parametro window: 1 para aceptar token debido a la diferencia horaria
+        res.json({ isValidToken: isValidToken });
+    },
 };
 
 module.exports = tokensController;
