@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID
-const region = 'us-east-1';
+const region = 'us-east-2';
 
 
 AWS.config.update({
