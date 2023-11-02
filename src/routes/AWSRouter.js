@@ -23,7 +23,7 @@ routerAWS.post("/subir-imagen", upload.single("archivo"), async (req, res) => {
 
         const archivo = req.file;
         const rutaTemporal = archivo.path;
-        const nombreBucket = "baby-growth-hub";
+        const nombreBucket = "sw-baby-growth-hub";
 
         const resultado = await subirArchivoA_S3(
             archivo.originalname,
