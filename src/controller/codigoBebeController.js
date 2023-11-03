@@ -254,8 +254,8 @@ const codigoBebeController = {
         const nombreEncargado = req.body.nombreEncargado;
         const nombreBebe = req.body.nombreBebe;
 
-        const emailTransporter = "babygrowthhub@gmail.com";
-        const emailPassword = "hycpsbupuealsymr";
+        const emailTransporter = process.env.EMAIL_TRANSPORTER;
+        const emailPassword = process.env.PASS_EMAIL_TRANSPORTER;
 
         // Configurar el transporte del correo electrónico
         const transporter = nodemailer.createTransport({

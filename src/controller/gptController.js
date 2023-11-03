@@ -1,7 +1,7 @@
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
-    apiKey: "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",
+    apiKey: process.env.API_CHATGPT,
 });
 const openai = new OpenAIApi(configuration);
 
