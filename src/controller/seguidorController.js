@@ -1,11 +1,11 @@
 const { connection } = require("../config/conexionDB.js");
 
 const seguidorController = {
-  recuperarAcitivadesDia: async (req, res) => {
-    try {
-      const idAdulto = req.params.idAdulto;
+    recuperarAcitivadesDia: async (req, res) => {
+        try {
+            const idAdulto = req.params.idAdulto;
 
-      const consulta = `
+            const consulta = `
         SELECT
           a.IDActividad,
           a.Titulo,
@@ -32,31 +32,32 @@ const seguidorController = {
           ab.IDAdulto = ${idAdulto}
           AND a.Fecha = CURDATE();
         `;
-      const results = await new Promise((resolve, reject) => {
-        connection.query(consulta, (error, results) => {
-          if (error) {
-            console.error(
-              "Error en la consulta recuperar actividades calendario:",
-              error
-            );
-            reject(error);
-          } else {
-            resolve(results);
-          }
-        });
-      });
+            const results = await new Promise((resolve, reject) => {
+                connection.query(consulta, (error, results) => {
+                    if (error) {
+                        console.error(
+                            "Error en la consulta recuperar actividades calendario:",
+                            error
+                        );
+                        reject(error);
+                    } else {
+                        resolve(results);
+                    }
+                });
+            });
 
-      res.json(results);
-    } catch (error) {
-      console.error(
-        "Error en la consulta recuperar actividades del día:",
-        error
-      );
-      return res.status(500).json({
-        message: "Error en el servidor al recuperar actividades del día",
-      });
-    }
-  },
+            res.json(results);
+        } catch (error) {
+            console.error(
+                "Error en la consulta recuperar actividades del día:",
+                error
+            );
+            return res.status(500).json({
+                message:
+                    "Error en el servidor al recuperar actividades del día",
+            });
+        }
+    },
 };
 
 module.exports = seguidorController;

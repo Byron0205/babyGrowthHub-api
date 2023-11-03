@@ -4,12 +4,17 @@ const nodemailer = require("nodemailer");
 // Credenciales del email de envio se almacenan en variables de entorno
 require("dotenv").config();
 
-function formatsPostSendToken(codigobebe, formatMailNumber, nombreEncargado, nombreBebe) {
-  let tokenMailingFormat = ``;
+function formatsPostSendToken(
+    codigobebe,
+    formatMailNumber,
+    nombreEncargado,
+    nombreBebe
+) {
+    let tokenMailingFormat = ``;
 
-  // Formato envio token doble factor
-  if (formatMailNumber == 1) {
-    tokenMailingFormat = `
+    // Formato envio token doble factor
+    if (formatMailNumber == 1) {
+        tokenMailingFormat = `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -110,9 +115,9 @@ function formatsPostSendToken(codigobebe, formatMailNumber, nombreEncargado, nom
     </html>
     
     `;
-    // Formato envio token cambio contrasena
-  } else if (formatMailNumber == 2) {
-    tokenMailingFormat = `
+        // Formato envio token cambio contrasena
+    } else if (formatMailNumber == 2) {
+        tokenMailingFormat = `
     <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -181,7 +186,7 @@ function formatsPostSendToken(codigobebe, formatMailNumber, nombreEncargado, nom
     </div>
     <div class="contenedor-texto">
       <p>
-        ¡Hola! Esperamos que estés teniendo un buen día. Queremos informarle que has recibido una invitación por parte de ${nombreEncargado} para unirte a la gran comunidad de Baby Growtn Hub. Como parte del proceso de registro para vincularte con ${nombreBebe} deberás ingresar el siguiente código del bebé en nuestra pagina de registro https://ti-usr3-cp.cuc-carrera-ti.ac.cr/login
+        ¡Hola! Esperamos que estés teniendo un buen día. Queremos informarle que has recibido una invitación por parte de ${nombreEncargado} para unirte a la gran comunidad de Baby Growtn Hub. Como parte del proceso de registro para vincularte con ${nombreBebe} deberás ingresar el siguiente código del bebé en nuestra pagina de registro https://ti-usr3-cp.cuc-carrera-ti.ac.cr/babygrowthhub/
       </p>
       <br />
       <div class="contenedor-token">
@@ -205,112 +210,123 @@ function formatsPostSendToken(codigobebe, formatMailNumber, nombreEncargado, nom
   </body>
 </html>
     `;
-  }
+    }
 
-  return tokenMailingFormat;
+    return tokenMailingFormat;
 }
 
 const codigoBebeController = {
-  validarCodigoBebe: async (req, res) => {
-    try {
-      const IDbebe = req.params.idBebe;
+    validarCodigoBebe: async (req, res) => {
+        try {
+            const IDbebe = req.params.idBebe;
 
-      const consulta = `
+            const consulta = `
       SELECT 
         EXISTS(SELECT 1 FROM bebes b WHERE b.IDBebe = ${IDbebe}) 
       AS CodigoValido;
       `;
-      const results = await new Promise((resolve, reject) => {
-        connection.query(consulta, (error, results) => {
-          if (error) {
-            console.error("Error al validar el ID del bebe:", error);
-            reject(error);
-          } else {
-            resolve(results);
-          }
+            const results = await new Promise((resolve, reject) => {
+                connection.query(consulta, (error, results) => {
+                    if (error) {
+                        console.error(
+                            "Error al validar el ID del bebe:",
+                            error
+                        );
+                        reject(error);
+                    } else {
+                        resolve(results);
+                    }
+                });
+            });
+
+            res.json(results);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: "Error en el servidor al validar el ID del bebe",
+            });
+        }
+    },
+    enviarCodigoBebe: async (req, res) => {
+        const codigoBebe = req.body.codigo;
+        const email = req.body.email;
+        const formatMailNumber = req.body.formatmail;
+        const nombreEncargado = req.body.nombreEncargado;
+        const nombreBebe = req.body.nombreBebe;
+
+        const emailTransporter = "babygrowthhub@gmail.com";
+        const emailPassword = "hycpsbupuealsymr";
+
+        // Configurar el transporte del correo electrónico
+        const transporter = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: emailTransporter,
+                pass: emailPassword,
+            },
         });
-      });
 
-      res.json(results);
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({
-        error: "Error en el servidor al validar el ID del bebe",
-      });
-    }
-  },
-  enviarCodigoBebe: async (req, res) => {
-    const codigoBebe = req.body.codigo;
-    const email = req.body.email;
-    const formatMailNumber = req.body.formatmail;
-    const nombreEncargado = req.body.nombreEncargado;
-    const nombreBebe = req.body.nombreBebe;
+        //Obtener el formato que tendra el correo para envio del token
+        const mailNumberInt = parseInt(formatMailNumber);
+        const tokenMailingFormat = formatsPostSendToken(
+            codigoBebe,
+            mailNumberInt,
+            nombreEncargado,
+            nombreBebe
+        );
 
-    const emailTransporter = 'babygrowthhub@gmail.com';
-    const emailPassword = 'hycpsbupuealsymr';
+        // Esperar hasta que se envíe el correo electrónico
+        const result = await transporter.sendMail({
+            from: emailTransporter,
+            to: email,
+            subject: "Invitación a Baby Growth Hub",
+            html: tokenMailingFormat,
+        });
 
-    // Configurar el transporte del correo electrónico
-    const transporter = nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: emailTransporter,
-        pass: emailPassword,
-      },
-    });
+        // Verificar si el envío fue exitoso
+        if (result.accepted.length > 0) {
+            console.log("Correo enviado exitosamente.");
+            res.json({ codigoEnviado: true });
+        } else {
+            console.log("Fallo al enviar el correo.");
+            res.json({ codigoEnviado: false });
+        }
+    },
+    vincularAdultoXbebe: async (req, res) => {
+        try {
+            const IDbebe = req.body.idBebe;
+            const IDadulto = req.body.idAdulto;
+            const EncargadoPrincipal = req.body.EncargadoPrincipal;
+            const IDRol = req.body.IDRol;
+            let resultado = false;
 
-    //Obtener el formato que tendra el correo para envio del token
-    const mailNumberInt = parseInt(formatMailNumber);
-    const tokenMailingFormat = formatsPostSendToken(codigoBebe, mailNumberInt, nombreEncargado, nombreBebe);
-
-    // Esperar hasta que se envíe el correo electrónico
-    const result = await transporter.sendMail({
-      from: emailTransporter,
-      to: email,
-      subject: "Invitación a Baby Growth Hub",
-      html: tokenMailingFormat,
-    });
-
-    // Verificar si el envío fue exitoso
-    if (result.accepted.length > 0) {
-      console.log("Correo enviado exitosamente.");
-      res.json({ codigoEnviado: true });
-    } else {
-      console.log("Fallo al enviar el correo.");
-      res.json({ codigoEnviado: false });
-    }
-  },
-  vincularAdultoXbebe: async (req, res) => {
-    try {
-      const IDbebe = req.body.idBebe;
-      const IDadulto = req.body.idAdulto;
-      const EncargadoPrincipal = req.body.EncargadoPrincipal; 
-      const IDRol = req.body.IDRol
-      let resultado = false;
-
-      const consulta = `
+            const consulta = `
       INSERT INTO adultosxbebe (IDAdulto, IDBebe, EncargadoPrincipal, IDRol)
       VALUES (${IDadulto}, ${IDbebe}, ${EncargadoPrincipal} , ${IDRol});
       `;
-      const results = await new Promise((resolve, reject) => {
-        connection.query(consulta, (error, results) => {
-          if (error) {
-            console.error("Error al insertar el adulto por bebé:", error);
-            reject(error);
-          } else {
-            resultado = true;
-            resolve(results);
-          }
-        });
-      });
+            const results = await new Promise((resolve, reject) => {
+                connection.query(consulta, (error, results) => {
+                    if (error) {
+                        console.error(
+                            "Error al insertar el adulto por bebé:",
+                            error
+                        );
+                        reject(error);
+                    } else {
+                        resultado = true;
+                        resolve(results);
+                    }
+                });
+            });
 
-      res.json(resultado);
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({
-        error: "Error en el servidor al insertar el adulto por bebé",
-      });
-    }
-  },
+            res.json(resultado);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                error: "Error en el servidor al insertar el adulto por bebé",
+            });
+        }
+    },
 };
 
 module.exports = codigoBebeController;

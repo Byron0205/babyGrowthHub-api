@@ -1,6 +1,5 @@
 const { connection } = require("../config/conexionDB.js");
 
-
 const adultos = {
     obtenerAdultosConRoles: async (req, res) => {
         try {
@@ -15,7 +14,9 @@ const adultos = {
             connection.query(query, (error, results) => {
                 if (error) {
                     console.error("Error al ejecutar la consulta:", error);
-                    res.status(500).json({ error: "Error al ejecutar la consulta" });
+                    res.status(500).json({
+                        error: "Error al ejecutar la consulta",
+                    });
                 } else {
                     res.json(results);
                 }
@@ -50,7 +51,9 @@ const adultos = {
                 if (error) {
                     console.error("Error al ejecutar la consulta:", error);
 
-                    res.status(500).json({ error: "Error al ejecutar la consulta" });
+                    res.status(500).json({
+                        error: "Error al ejecutar la consulta",
+                    });
                 } else {
                     res.json(results);
                 }
@@ -80,7 +83,9 @@ const adultos = {
                 if (error) {
                     console.error("Error al ejecutar la consulta:", error);
 
-                    res.status(500).json({ error: "Error al ejecutar la consulta" });
+                    res.status(500).json({
+                        error: "Error al ejecutar la consulta",
+                    });
                 } else {
                     res.json(results);
                 }
@@ -102,27 +107,27 @@ const adultos = {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!Nombre || !Apellidos || !Correo) {
-            return res
-                .status(400)
-                .json({ error: "Nombre, Apellidos y Correo son campos requeridos" });
+            return res.status(400).json({
+                error: "Nombre, Apellidos y Correo son campos requeridos",
+            });
         }
 
         if (!nombreRegex.test(Nombre) || !nombreRegex.test(Apellidos)) {
-            return res
-                .status(400)
-                .json({
-                    error: "Nombre y Apellidos solo pueden contener letras y espacios",
-                });
+            return res.status(400).json({
+                error: "Nombre y Apellidos solo pueden contener letras y espacios",
+            });
         }
 
         if (!emailRegex.test(Correo)) {
-            return res.status(400).json({ error: "Correo electrónico inválido" });
+            return res
+                .status(400)
+                .json({ error: "Correo electrónico inválido" });
         }
 
         if (!Nombre || !Apellidos || !Correo) {
-            return res
-                .status(400)
-                .json({ error: "Nombre, Apellidos y Correo son campos requeridos" });
+            return res.status(400).json({
+                error: "Nombre, Apellidos y Correo son campos requeridos",
+            });
         }
 
         try {
@@ -143,12 +148,18 @@ const adultos = {
                     if (error) {
                         console.error("Error al modificar el adulto:", error);
 
-                        res.status(500).json({ error: "Error al modificar el adulto" });
+                        res.status(500).json({
+                            error: "Error al modificar el adulto",
+                        });
                     } else {
                         if (results.affectedRows === 0) {
-                            res.status(404).json({ message: "Adulto no encontrado" });
+                            res.status(404).json({
+                                message: "Adulto no encontrado",
+                            });
                         } else {
-                            res.json({ message: "Adulto modificado exitosamente" });
+                            res.json({
+                                message: "Adulto modificado exitosamente",
+                            });
                         }
                     }
                 }
@@ -159,7 +170,7 @@ const adultos = {
             res.status(500).json({ error: "Error en el servidor" });
         }
     },
-    consultaPanel: async ( req, res) => {
+    consultaPanel: async (req, res) => {
         const { IDBebe } = req.params;
         const query = `
             SELECT a.IDAdulto, CONCAT(a.Nombre, ' ', a.Apellidos) AS NombreCompleto, ab.EncargadoPrincipal,
@@ -174,7 +185,9 @@ const adultos = {
             if (error) {
                 console.error("Error al ejecutar la consulta:", error);
 
-                res.status(500).json({ error: "Error al ejecutar la consulta" });
+                res.status(500).json({
+                    error: "Error al ejecutar la consulta",
+                });
             } else {
                 res.json(results);
             }
@@ -182,24 +195,29 @@ const adultos = {
     },
     modificarRolConsultaPanel: async (req, res) => {
         const { IDBebe } = req.params;
-        const { IDAdulto, NuevoRol } = req.body; 
-    
+        const { IDAdulto, NuevoRol } = req.body;
+
         const updateQuery = `
             UPDATE adultosxbebe
             SET IDRol = ?
             WHERE IDBebe = ? AND IDAdulto = ?;
         `;
-    
-        connection.query(updateQuery, [NuevoRol, IDBebe, IDAdulto], (error, results) => {
-            if (error) {
-                console.error("Error al ejecutar la consulta:", error);
-                res.status(500).json({ error: "Error al ejecutar la consulta de modificación" });
-            } else {
-                res.json({ message: "Rol modificado exitosamente" });
+
+        connection.query(
+            updateQuery,
+            [NuevoRol, IDBebe, IDAdulto],
+            (error, results) => {
+                if (error) {
+                    console.error("Error al ejecutar la consulta:", error);
+                    res.status(500).json({
+                        error: "Error al ejecutar la consulta de modificación",
+                    });
+                } else {
+                    res.json({ message: "Rol modificado exitosamente" });
+                }
             }
-        });
+        );
     },
-    
 };
 
 module.exports = adultos;

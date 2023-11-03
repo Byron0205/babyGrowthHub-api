@@ -36,7 +36,7 @@ routerAWS.post("/subir-imagen", upload.single("archivo"), async (req, res) => {
 
         fs.unlink(rutaTemporal, (err) => {
             if (err) {
-                console.error("Error al eliminar el archivo local:", err);
+                console.error("Error al eliminar el archivo local: ", err);
             }
         });
 

@@ -1,6 +1,5 @@
 const { connection } = require("../config/conexionDB.js");
-const moment = require('moment')
-
+const moment = require("moment");
 
 function calcularFechaDeNacimiento(semanasEmbarazo) {
     // Verificamos que el número de semanas esté en el rango válido
@@ -23,12 +22,11 @@ function calcularFechaDeNacimiento(semanasEmbarazo) {
 const consultas_Login = {
     validarLogin: async (req, res) => {
         const { correo, contrasenna } = req.body;
-        const query =
-            `SELECT a.IDAdulto, a.Correo, a.Contrasenna, axb.IDRol, CONCAT(a.Nombre, ' ', a.Apellidos) AS Nombre
+        const query = `SELECT a.IDAdulto, a.Correo, a.Contrasenna, axb.IDRol, CONCAT(a.Nombre, ' ', a.Apellidos) AS Nombre
             FROM adultos a
             JOIN adultosxbebe axb ON axb.IDAdulto = a.IDAdulto
             WHERE Contrasenna = ? AND Correo = ?
-            ORDER BY a.IDAdulto ASC
+            ORDER BY a.IDAdulto DESC
             LIMIT 1;`;
         try {
             connection.query(
@@ -45,12 +43,17 @@ const consultas_Login = {
                     if (results.length > 0) {
                         const logData = results;
                         //login is valid in bd
-                        return res.json({ msg: "Login realizado correctamente", id: logData[0].IDAdulto, rol: logData[0].IDRol, nombre: logData[0].Nombre });
+                        return res.json({
+                            msg: "Login realizado correctamente",
+                            id: logData[0].IDAdulto,
+                            rol: logData[0].IDRol,
+                            nombre: logData[0].Nombre,
+                        });
                     } else {
                         //login not valid, user not exist
-                        return res
-                            .status(401)
-                            .json({ msg: "Usuario y/o contraseña incorrectos" });
+                        return res.status(401).json({
+                            msg: "Usuario y/o contraseña incorrectos",
+                        });
                     }
                 }
             );
@@ -74,8 +77,7 @@ const consultas_Login = {
         // Formatear la fecha en el formato deseado: "YYYY-MM-DD"
         const fechaFormateada = `${year}-${month}-${day}`;
 
-        const { IDAdulto, Nombre, Apellidos, Correo, Contrasenna, IDRol } =
-            req.body;
+        const { IDAdulto, Nombre, Apellidos, Correo, Contrasenna } = req.body;
         const query =
             "Insert into Adultos(IDAdulto,Nombre,Apellidos,Correo,Contrasenna,FechaRegistro, Activo)values(?,?,?,?,?,?,?)";
         try {
@@ -88,7 +90,7 @@ const consultas_Login = {
                     Correo,
                     Contrasenna,
                     fechaFormateada,
-                    0
+                    0,
                 ],
                 (error, fields) => {
                     if (error) {
@@ -97,14 +99,13 @@ const consultas_Login = {
                             .status(500)
                             .json({ msg: "Error al realizar la consulta" });
                     }
-                    return res.json({ msg: 'usuario creado correctamente' })
+                    return res.json({ msg: "usuario creado correctamente" });
                 }
             );
-        } catch (error) { }
+        } catch (error) {}
     },
 
     ingresarBebe: async (req, res) => {
-
         let edadCalculada;
         let fechaNacimientoCalculada;
 
@@ -119,26 +120,27 @@ const consultas_Login = {
         // Formatear la fecha en el formato deseado: "YYYY-MM-DD"
         const fechaFormateada = `${year}-${month}-${day}`;
 
-        const { IDBebe, Nombre, Apellidos, Edad, FechaNacimiento, Sexo } = req.body;
+        const { IDBebe, Nombre, Apellidos, Edad, FechaNacimiento, Sexo } =
+            req.body;
 
-        //validar fecha de nacimiento 
-        if (FechaNacimiento !== '') {
-            const fechanacimiento = new Date(FechaNacimiento)
-            const hoy = new Date()
+        //validar fecha de nacimiento
+        if (FechaNacimiento !== "") {
+            const fechanacimiento = new Date(FechaNacimiento);
+            const hoy = new Date();
             //console.log(fechanacimiento.getFullYear())
             //console.log(hoy.getFullYear())
 
-            const annos = hoy.getFullYear() - fechanacimiento.getFullYear()
+            const annos = hoy.getFullYear() - fechanacimiento.getFullYear();
 
-            edadCalculada = annos
-            fechaNacimientoCalculada = FechaNacimiento
+            edadCalculada = annos;
+            fechaNacimientoCalculada = FechaNacimiento;
         } else {
             try {
-                console.log(Edad)
+                console.log(Edad);
                 const semanasEmbarazo = Edad; // Ingresa aquí el número de semanas de embarazo
-                fechaNacimientoCalculada = calcularFechaDeNacimiento(semanasEmbarazo);
+                fechaNacimientoCalculada =
+                    calcularFechaDeNacimiento(semanasEmbarazo);
                 edadCalculada = Edad;
-
             } catch (error) {
                 console.error(error.message);
             }
@@ -165,7 +167,7 @@ const consultas_Login = {
                             .status(500)
                             .json({ msg: "Error al realizar la consulta" });
                     }
-                    return res.json({ msg: 'bebe ingresado correctamente' })
+                    return res.json({ msg: "bebe ingresado correctamente" });
                 }
             );
         } catch (error) {
